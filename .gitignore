@@ -1,0 +1,8 @@
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Archivos sensibles
+*.log
+.env
+config.php
