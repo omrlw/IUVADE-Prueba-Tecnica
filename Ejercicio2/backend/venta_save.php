@@ -1,66 +1,41 @@
 <?php
-// Inserta o actualiza una venta (cabecera).
-require_once __DIR__ . '/db.php';
+// Inserta o modifica una venta. Recibe JSON desde ExtJS.
+require 'db.php';
 
-$data = read_request_data();
+$input   = read_request_data();              // lee POST o cuerpo crudo
+$ven_ide = $input['ven_ide'] ?? null;        // viene solo al editar
+$ven_ser = trim($input['ven_ser'] ?? '');    // serie del comprobante
+$ven_num = trim($input['ven_num'] ?? '');    // número del comprobante
+$ven_cli = trim($input['ven_cli'] ?? '');    // nombre de cliente
+$ven_mon = $input['ven_mon'] ?? null;        // monto declarado
 
-// Validaciones básicas para no insertar registros vacíos.
-$venIde = isset($data['ven_ide']) ? (int) $data['ven_ide'] : null;
-$venSer = trim($data['ven_ser'] ?? '');
-$venNum = trim($data['ven_num'] ?? '');
-$venCli = trim($data['ven_cli'] ?? '');
-$venMon = $data['ven_mon'] ?? null;
-$estAdo = isset($data['est_ado']) ? (int) $data['est_ado'] : 1;
-
-if ($venSer === '' || $venNum === '' || $venCli === '') {
-    send_json(['success' => false, 'error' => 'Faltan datos obligatorios.'], 400);
-}
-
-if (!is_numeric($venMon)) {
-    send_json(['success' => false, 'error' => 'El monto debe ser numérico.'], 400);
+// Validaciones básicas para no guardar registros incompletos.
+if ($ven_ser === '' || $ven_num === '' || $ven_cli === '' || $ven_mon === null) {
+    send_json(['success' => false, 'message' => 'Faltan datos obligatorios.'], 400);
 }
 
 try {
-    if ($venIde) {
-        // Actualizamos el registro existente.
-        $sql = "
-            UPDATE ventas
-            SET ven_ser = :ven_ser,
-                ven_num = :ven_num,
-                ven_cli = :ven_cli,
-                ven_mon = :ven_mon,
-                est_ado = :est_ado
-            WHERE ven_ide = :ven_ide
-            RETURNING ven_ide, ven_ser, ven_num, ven_cli, ven_mon, est_ado
-        ";
+    if ($ven_ide) {
+        // Actualizar cabecera existente.
+        $stmt = $pdo->prepare("
+            UPDATE prueba.venta
+            SET ven_ser = ?, ven_num = ?, ven_cli = ?, ven_mon = ?
+            WHERE ven_ide = ?
+        ");
+        $stmt->execute([$ven_ser, $ven_num, $ven_cli, $ven_mon, $ven_ide]);
     } else {
-        // Insertamos una nueva venta.
-        $sql = "
-            INSERT INTO ventas (ven_ser, ven_num, ven_cli, ven_mon, est_ado)
-            VALUES (:ven_ser, :ven_num, :ven_cli, :ven_mon, :est_ado)
-            RETURNING ven_ide, ven_ser, ven_num, ven_cli, ven_mon, est_ado
-        ";
+        // Insertar nueva cabecera.
+        $stmt = $pdo->prepare("
+            INSERT INTO prueba.venta (ven_ser, ven_num, ven_cli, ven_mon)
+            VALUES (?, ?, ?, ?)
+        ");
+        $stmt->execute([$ven_ser, $ven_num, $ven_cli, $ven_mon]);
     }
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':ven_ser' => $venSer,
-        ':ven_num' => $venNum,
-        ':ven_cli' => $venCli,
-        ':ven_mon' => $venMon,
-        ':est_ado' => $estAdo,
-        ':ven_ide' => $venIde,
-    ]);
-
-    $saved = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    send_json([
-        'success' => true,
-        'data' => $saved,
-    ]);
-} catch (PDOException $e) {
+    send_json(['success' => true]);
+} catch (Exception $e) {
     send_json([
         'success' => false,
-        'error' => $e->getMessage(),
+        'message' => $e->getMessage(),
     ], 500);
 }

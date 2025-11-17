@@ -13,7 +13,7 @@ if (!$tra_ide) {
 try {
     $stmt = $pdo->prepare("
         UPDATE prueba.trabajador
-        SET est_ado = 1
+        SET est_ado = 0
         WHERE tra_ide = ?
     ");
     $stmt->execute([$tra_ide]);

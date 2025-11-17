@@ -1,4 +1,6 @@
 <?php
+// Conexión simple a PostgreSQL mediante PDO.
+// Se centraliza para reutilizar $pdo y helpers en todos los endpoints.
 
 $host = "localhost";
 $port = "5432";
@@ -6,19 +8,18 @@ $db   = "crud_db";
 $user = "sebas";
 $pass = "12345";
 
-// Creamos el objeto PDO de forma centralizada y con manejo básico de errores.
 try {
+    // DSN de PostgreSQL. Se activa modo excepciones para capturar errores.
     $dsn = "pgsql:host=$host;port=$port;dbname=$db;";
     $pdo = new PDO($dsn, $user, $pass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ]);
 } catch (PDOException $e) {
-    // Si la conexión falla devolvemos un JSON con el error.
-    send_json(['success' => false, 'error' => $e->getMessage()], 500);
+    send_json(['success' => false, 'message' => $e->getMessage()], 500);
 }
 
 /**
- * Atajo para responder en formato JSON y terminar la ejecución.
+ * Responde en JSON y finaliza el script.
  */
 function send_json(array $payload, int $status = 200): void
 {
@@ -29,16 +30,14 @@ function send_json(array $payload, int $status = 200): void
 }
 
 /**
- * Obtiene los datos enviados por POST o por el cuerpo raw (JSON).
+ * Lee datos enviados ya sea como formulario o como JSON crudo.
  */
 function read_request_data(): array
 {
-    // Primero intentamos con $_POST por compatibilidad con formularios clásicos.
     if (!empty($_POST)) {
         return $_POST;
     }
 
-    // Si no hay POST, tratamos de decodificar el cuerpo JSON.
     $raw = file_get_contents('php://input');
     $decoded = json_decode($raw, true);
 

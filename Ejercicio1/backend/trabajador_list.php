@@ -7,7 +7,7 @@ try {
     $stmt = $pdo->query("
         SELECT tra_ide, tra_cod, tra_nom, tra_pat, tra_mat, est_ado
         FROM prueba.trabajador
-        WHERE est_ado = 0 -- 0 = activo, 1 = eliminado lógico
+        WHERE est_ado = 1 -- 1 = activo, 0 = eliminado lógico
         ORDER BY tra_ide ASC
     ");
 

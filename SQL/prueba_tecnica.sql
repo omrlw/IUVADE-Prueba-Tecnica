@@ -20,18 +20,19 @@ CREATE TABLE IF NOT EXISTS prueba.trabajador(
 );
 
 -- --------------------------------------------
--- TABLA: venta (Ejercicio 2)
+-- TABLA: venta (Ejercicio 2) con est_ado para borrado lógico
 -- --------------------------------------------
 CREATE TABLE IF NOT EXISTS prueba.venta(
     ven_ide SERIAL PRIMARY KEY,
-    ven_ser VARCHAR(5) DEFAULT '',
+    ven_ser VARCHAR(10) DEFAULT '',
     ven_num VARCHAR(100) DEFAULT '',
     ven_cli TEXT DEFAULT '',
-    ven_mon NUMERIC(14,2)
+    ven_mon NUMERIC(14,2) DEFAULT 0,
+    est_ado INTEGER DEFAULT 1
 );
 
 -- --------------------------------------------
--- TABLA: venta_detalle (Ejercicio 2)
+-- TABLA: venta_detalle (Ejercicio 2) con est_ado
 -- --------------------------------------------
 CREATE TABLE IF NOT EXISTS prueba.venta_detalle(
     v_d_ide SERIAL PRIMARY KEY,

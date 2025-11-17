@@ -1,22 +1,26 @@
 <?php
-// Elimina lógicamente una venta (cabecera) marcando est_ado = 0.
-require_once __DIR__ . '/db.php';
+// Borrado lógico de una venta (est_ado = 0).
+require 'db.php'; // abre la conexión y helpers
 
-$data = read_request_data();
-$venIde = isset($data['ven_ide']) ? (int) $data['ven_ide'] : null;
+$input   = read_request_data();        // datos enviados vía AJAX
+$ven_ide = $input['ven_ide'] ?? null;  // ID de la venta a marcar como eliminada
 
-if (!$venIde) {
-    send_json(['success' => false, 'error' => 'ven_ide es obligatorio.'], 400);
+if (!$ven_ide) {
+    send_json(['success' => false, 'message' => 'ID de venta requerido'], 400);
 }
 
 try {
-    $stmt = $pdo->prepare('UPDATE ventas SET est_ado = 0 WHERE ven_ide = :ven_ide');
-    $stmt->execute([':ven_ide' => $venIde]);
+    $stmt = $pdo->prepare("
+        UPDATE prueba.venta
+        SET est_ado = 0
+        WHERE ven_ide = ?
+    ");
+    $stmt->execute([$ven_ide]);
 
     send_json(['success' => true]);
-} catch (PDOException $e) {
+} catch (Exception $e) {
     send_json([
         'success' => false,
-        'error' => $e->getMessage(),
+        'message' => $e->getMessage(),
     ], 500);
 }
